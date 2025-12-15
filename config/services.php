@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'trackingmore' => [
+        'key' => env('TRACKINGMORE_API_KEY'),
+        'webhook_secret' => env('TRACKINGMORE_WEBHOOK_SECRET'),
+    ],
+
 ];

@@ -13,7 +13,13 @@ class AdminController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Admin/Dashboard');
+        $orders = Order::with('shipment')
+            ->orderByDesc('id')
+            ->paginate(15);
+
+        return Inertia::render('Admin/Dashboard', [
+            'orders' => $orders,
+        ]);
     }
 
     function salesPerformance()

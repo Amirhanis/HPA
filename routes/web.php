@@ -12,12 +12,21 @@ use App\Http\Controllers\User\CartController;
 use App\Http\Controllers\User\CheckoutController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ProductListController;
+use App\Http\Controllers\Admin\ShipmentController;
+use App\Http\Controllers\Webhooks\TrackingMoreWebhookController;
+use App\Http\Controllers\Admin\CourierController;
 
 //user routes
 Route::get('/', [UserController::class, 'index'])->name('home');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
-Route::get('/orders/{order}/download-invoice', [DashboardController::class, 'downloadInvoice'])->name('orders.download.invoice');
+Route::get('/orders/{order}/download-invoice', [DashboardController::class, 'downloadInvoice'])
+    ->middleware(['auth', 'verified'])
+    ->name('orders.download.invoice');
+
+Route::get('/orders/{order}/tracking', [DashboardController::class, 'tracking'])
+    ->middleware(['auth', 'verified'])
+    ->name('orders.tracking');
 
 // Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
@@ -58,10 +67,16 @@ Route::group(['prefix' => 'admin'], function () {
 Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
 
+    Route::get('/couriers', [CourierController::class, 'index'])->name('admin.couriers.index');
+
+    Route::post('/orders/{order}/shipment', [ShipmentController::class, 'store'])->name('admin.orders.shipment.store');
+
     Route::get('/products', [ProductController::class, 'index'])->name('admin.products.index');
     Route::post('/products/store', [ProductController::class, 'store'])->name('admin.products.store');
     Route::put('/products/update/{id}', [ProductController::class, 'update'])->name('admin.products.update');
     Route::delete('/products/image/{id}', [ProductController::class, 'deleteImage'])->name('admin.products.image.delete');
     Route::delete('/products/destroy/{id}', [ProductController::class, 'destroy'])->name('admin.products.destroy');
 });
+
+Route::post('/webhooks/trackingmore', [TrackingMoreWebhookController::class, 'handle'])->name('webhooks.trackingmore');
 require __DIR__.'/auth.php';

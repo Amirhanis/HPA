@@ -12,4 +12,9 @@ class Order extends Model
     function order_items()  {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function shipment()
+    {
+        return $this->hasOne(Shipment::class);
+    }
 }
