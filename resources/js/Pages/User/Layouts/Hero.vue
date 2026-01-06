@@ -18,9 +18,9 @@
            <h1
                class="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
                We invest in the world’s potential</h1>
-           <p class="mb-8 text-lg font-normal text-green-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">
-               <h2>“Sekiranya Mereka Tahu Khasiat Herba Kita, Mereka Akan Tukarkan Dengan Ketulan Emas”– Tn Hj Ismail</h2>
-           </p>
+           <h2 class="mb-8 text-lg font-normal text-green-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">
+               “Sekiranya Mereka Tahu Khasiat Herba Kita, Mereka Akan Tukarkan Dengan Ketulan Emas”– Tn Hj Ismail
+           </h2>
            <div class="flex flex-col mb-8 lg:mb-16 space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
                <iframe class="w-full h-64 sm:w-96 sm:h-72 lg:w-96 lg:h-72"
                    src="https://www.youtube.com/embed/l1xllcyRwAQ" title="IKLAN RADIX KOKO (TV9)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>" title="YouTube video player" frameborder="0"

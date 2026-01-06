@@ -1,25 +1,28 @@
 #!/usr/bin/env sh
 set -e
 
-echo "Bootstrapping Laravel..."
+echo "Booting Laravel..."
 
-# Ensure writable dirs
+# Create ALL required runtime directories
 mkdir -p \
-  storage/framework/{cache,sessions,views} \
+  storage/framework/cache \
+  storage/framework/sessions \
+  storage/framework/views \
+  storage/logs \
   bootstrap/cache
 
+# Fix permissions
 chmod -R ug+rwx storage bootstrap/cache || true
 
-# Clear stale caches (safe on every boot)
+# Clear stale caches (safe every boot)
 php artisan optimize:clear || true
 
-# Run migrations only if enabled
+# Run migrations if enabled
 if [ "${RUN_MIGRATIONS:-}" = "1" ] || [ "${RUN_MIGRATIONS:-}" = "true" ]; then
-  echo "RUN_MIGRATIONS enabled: running migrations"
   php artisan migrate --force || true
 fi
 
-# Rebuild config cache from Render env vars
+# Rebuild config cache from Render env
 php artisan config:cache || true
 
 # Render nginx config
