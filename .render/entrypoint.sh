@@ -3,10 +3,11 @@ set -e
 
 echo "Bootstrapping Laravel..."
 
-# Ensure writable dirs
-mkdir -p \
-  storage/framework/{cache,sessions,views} \
-  bootstrap/cache
+# Ensure writable dirs (avoid bash-only brace expansion)
+mkdir -p storage/framework/cache
+mkdir -p storage/framework/sessions
+mkdir -p storage/framework/views
+mkdir -p bootstrap/cache
 
 chmod -R ug+rwx storage bootstrap/cache || true
 
