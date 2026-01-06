@@ -26,7 +26,8 @@
         "chartjs-adapter-date-fns": "^3.0.0",
         "element-plus": "^2.9.0",
         "flowbite": "^2.5.2",
-        "vue-sweetalert2": "^5.0.11"
+        "vue-sweetalert2": "^5.0.11",
+        "ziggy-js": "^2.6.0"
     },
     "proxy": {
         "/api": "http://localhost:8000"
