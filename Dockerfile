@@ -16,7 +16,8 @@ RUN apk add --no-cache \
     supervisor \
     nodejs \
     npm \
-    unzip
+    unzip \
+    gettext
 
 # PHP extensions
 RUN docker-php-ext-install \
@@ -44,12 +45,15 @@ RUN npm ci \
  && rm -rf node_modules
 
 # Nginx + Supervisor configs
-RUN mkdir -p /run/nginx /var/log/supervisor
-COPY ./.render/nginx.conf /etc/nginx/nginx.conf
-COPY ./.render/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./.render/nginx.conf /etc/nginx/nginx.conf.template
+COPY ./.render/supervisord.conf /etc/supervisord.conf
+COPY ./.render/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Laravel permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
+ENV PORT=8080
 EXPOSE 8080
-CMD ["/usr/bin/supervisord", "-n"]
+
+CMD ["/entrypoint.sh"]
