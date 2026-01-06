@@ -1,0 +1,28 @@
+.git
+.gitignore
+.idea
+.vscode
+
+# Local env
+.env
+.env.*
+
+# Dependencies (installed in image)
+node_modules
+vendor
+
+# Logs / caches
+storage/logs
+storage/framework/cache
+storage/framework/sessions
+storage/framework/views
+storage/framework/testing
+bootstrap/cache/*.php
+
+# Tests
+tests
+phpunit.xml
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
