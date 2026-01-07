@@ -4,12 +4,13 @@ set -e
 echo "Bootstrapping Laravel..."
 
 # Ensure writable dirs (avoid bash-only brace expansion)
-mkdir -p storage/framework/cache
-mkdir -p storage/framework/sessions
-mkdir -p storage/framework/views
-mkdir -p bootstrap/cache
+mkdir -p /var/www/html/storage/framework/cache
+mkdir -p /var/www/html/storage/framework/sessions
+mkdir -p /var/www/html/storage/framework/views
+mkdir -p /var/www/html/bootstrap/cache
 
-chmod -R ug+rwx storage bootstrap/cache || true
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
+chmod -R ug+rwx /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
 
 # Clear stale caches (safe on every boot)
 php artisan optimize:clear || true
