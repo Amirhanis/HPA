@@ -3,7 +3,6 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,7 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         // Render sits behind a reverse proxy; trust forwarded headers so Laravel
         // correctly detects HTTPS and generates https:// asset URLs.
-        $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_ALL);
+        $middleware->trustProxies(at: '*');
 
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
