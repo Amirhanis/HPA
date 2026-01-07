@@ -6,7 +6,6 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 
 import { ZiggyVue } from 'ziggy-js';
-import { Ziggy } from './ziggy';
 
 import ElementPlus from 'element-plus';
 import 'element-plus/dist/index.css';
@@ -27,11 +26,9 @@ createInertiaApp({
         const app = createApp({ render: () => h(App, props) });
 
         app.use(plugin);
-        app.use(ZiggyVue, Ziggy);
+        app.use(ZiggyVue, window.Ziggy);
         app.use(ElementPlus);
         app.use(VueSweetalert2);
-
-        window.Swal = app.config.globalProperties.$swal;
 
         app.mount(el);
     },
