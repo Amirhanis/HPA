@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\ProductImage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -46,16 +47,15 @@ class ProductController extends Controller
         //check if product has images upload
 
         if ($request->hasFile('product_images')) {
+            Storage::disk('public')->makeDirectory('product_images');
             $productImages = $request->file('product_images');
             foreach ($productImages as $image) {
-                // Generate a unique name for the image using timestamp and random string
                 $uniqueName = time() . '-' . Str::random(10) . '.' . $image->getClientOriginalExtension();
-                // Store the image in the public folder with the unique name
-                $image->move('product_images', $uniqueName);
-                // Create a new product image record with the product_id and unique name
+                $storedPath = $image->storeAs('product_images', $uniqueName, 'public');
+
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'image' => 'product_images/' . $uniqueName,
+                    'image' => 'storage/' . $storedPath,
                 ]);
             }
         }
@@ -85,19 +85,15 @@ class ProductController extends Controller
         $product->brand_id = $request->brand_id;
         // Check if product images were uploaded
         if ($request->hasFile('product_images')) {
+            Storage::disk('public')->makeDirectory('product_images');
             $productImages = $request->file('product_images');
-            // Loop through each uploaded image
             foreach ($productImages as $image) {
-                // Generate a unique name for the image using timestamp and random string
                 $uniqueName = time() . '-' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+                $storedPath = $image->storeAs('product_images', $uniqueName, 'public');
 
-                // Store the image in the public folder with the unique name
-                $image->move('product_images', $uniqueName);
-
-                // Create a new product image record with the product_id and unique name
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'image' => 'product_images/' . $uniqueName,
+                    'image' => 'storage/' . $storedPath,
                 ]);
             }
         }
@@ -107,7 +103,22 @@ class ProductController extends Controller
 
     public function deleteImage($id)
     {
-        $image = ProductImage::where('id', $id)->delete();
+        $image = ProductImage::findOrFail($id);
+
+        $relativePath = (string) $image->image;
+        if (str_starts_with($relativePath, 'storage/')) {
+            $diskPath = substr($relativePath, strlen('storage/'));
+            if ($diskPath && Storage::disk('public')->exists($diskPath)) {
+                Storage::disk('public')->delete($diskPath);
+            }
+        } else {
+            $fullPath = public_path($relativePath);
+            if (is_file($fullPath)) {
+                @unlink($fullPath);
+            }
+        }
+
+        $image->delete();
         return redirect()->route('admin.products.index')->with('success', 'Image deleted successfully.');
     }
 

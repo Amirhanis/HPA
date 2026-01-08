@@ -14,6 +14,7 @@ use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ProductListController;
 use App\Http\Controllers\Admin\ShipmentController;
 use App\Http\Controllers\Webhooks\TrackingMoreWebhookController;
+use App\Http\Controllers\Webhooks\StripeWebhookController;
 use App\Http\Controllers\Admin\CourierController;
 
 //user routes
@@ -79,4 +80,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 });
 
 Route::post('/webhooks/trackingmore', [TrackingMoreWebhookController::class, 'handle'])->name('webhooks.trackingmore');
+Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
+    ->name('webhooks.stripe');
 require __DIR__.'/auth.php';

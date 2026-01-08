@@ -128,20 +128,38 @@ class CheckoutController extends Controller
         try {
             $session = Session::retrieve($sessionId);
             if (!$session) {
-                throw new NotFoundHttpException;
-            }
-            $order = Order::where('session_id', $session->id)->first();
-            if (!$order) {
-                throw new NotFoundHttpException;
-            }
-            if ($order->status == 'unpaid') {
-                $order->status = 'paid';
-                $order->save();
+                return redirect()->route('dashboard')->with('error', 'Unable to verify payment session.');
             }
 
-            return redirect()->route('dashboard');
-        } catch (\Exception $e){
-            throw new NotFoundHttpException();
+            $order = Order::where('session_id', $session->id)->first();
+            if (!$order) {
+                return redirect()->route('dashboard')->with('error', 'Order not found for this payment session.');
+            }
+
+            // Stripe Checkout session payment_status: paid|unpaid|no_payment_required
+            if (($session->payment_status ?? null) === 'paid') {
+                if ($order->status === 'unpaid') {
+                    $order->status = 'paid';
+                    $order->save();
+                }
+
+                $payment = Payment::where('order_id', $order->id)->latest('id')->first();
+                if ($payment && $payment->status !== 'succeeded') {
+                    $payment->status = 'succeeded';
+                    $payment->save();
+                }
+
+                return redirect()->route('dashboard')->with('success', 'Payment successful.');
+            }
+
+            return redirect()->route('dashboard')->with('error', 'Payment not completed yet. If you were charged, it will update shortly.');
+        } catch (\Throwable $e){
+            return redirect()->route('dashboard')->with('error', 'Unable to verify payment. Please check your orders.');
         }
+    }
+
+    public function cancel()
+    {
+        return redirect()->route('dashboard')->with('error', 'Payment was cancelled.');
     }
 }
