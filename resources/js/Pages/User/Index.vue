@@ -1,6 +1,6 @@
 <script setup>
 import { Link, router } from "@inertiajs/vue3";
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { initFlowbite } from "flowbite";
 import UserLayout from "./Layouts/UserLayout.vue";
 import Hero from "./Layouts/Hero.vue";
@@ -10,8 +10,15 @@ onMounted(() => {
     initFlowbite();
 });
 
-defineProps({
-    products: Array,
+const props = defineProps({
+    products: {
+        type: [Array, Object],
+        default: () => ([]),
+    },
+});
+
+const normalizedProducts = computed(() => {
+    return Array.isArray(props.products) ? props.products : (props.products?.data ?? []);
 });
 </script>
 
@@ -27,7 +34,7 @@ defineProps({
                 </h2>
 
                 <!-- product list component -->
-                <Products :products="products"></Products>
+                <Products :products="normalizedProducts"></Products>
                 <div class="flex justify-center mt-5">
                     <Link
                         :href="route('products.index')"

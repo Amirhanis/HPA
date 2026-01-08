@@ -376,7 +376,7 @@ const deleteProduct = (product, index) => {
                     >
                         <img
                             class="w-24 h-20 rounded"
-                            :src="`/${pimage.image}`"
+                            :src="pimage.url"
                             alt=""
                         />
                         <span
@@ -677,7 +677,7 @@ const deleteProduct = (product, index) => {
                                 <td class="px-4 py-3">
                                     {{ product.quantity }}
                                 </td>
-                                <td class="px-4 py-3">${{ product.price }}</td>
+                                <td class="px-4 py-3">RM{{ product.price }}</td>
 
                                 <td class="px-4 py-3">
                                     <span

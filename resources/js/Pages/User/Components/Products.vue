@@ -29,7 +29,7 @@ const addToCart = (product) => {
 
                         <div
                             class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none  lg:h-80">
-                            <img v-if="product.product_images.length > 0" :src="`/${product.product_images[0].image}`"
+                            <img v-if="product.product_images.length > 0" :src="product.product_images[0].url || `/${product.product_images[0].image}`"
                                 :alt="product.imageAlt"
                                 class="h-full w-full object-cover object-center lg:h-full lg:w-full" />
                             <img v-else

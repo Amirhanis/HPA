@@ -14,6 +14,20 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
+    private function s3IsConfigured(): bool
+    {
+        return (bool) (config('filesystems.disks.s3.key')
+            && config('filesystems.disks.s3.secret')
+            && config('filesystems.disks.s3.bucket'));
+    }
+
+    private function productImagesDisk(): string
+    {
+        // Local "default" disk is private (storage/app/private) and not web-accessible.
+        // Use "public" for local/dev, and "s3" when you set FILESYSTEM_DISK=s3 in production.
+        return (config('filesystems.default') === 's3' && $this->s3IsConfigured()) ? 's3' : 'public';
+    }
+
     public function index()
     {
         $products = Product::with('category', 'brand', 'product_images')->get();
@@ -47,15 +61,20 @@ class ProductController extends Controller
         //check if product has images upload
 
         if ($request->hasFile('product_images')) {
-            Storage::disk('public')->makeDirectory('product_images');
+            $disk = $this->productImagesDisk();
+                if ($disk !== 's3') {
+                    Storage::disk($disk)->makeDirectory('product_images');
+                }
             $productImages = $request->file('product_images');
             foreach ($productImages as $image) {
                 $uniqueName = time() . '-' . Str::random(10) . '.' . $image->getClientOriginalExtension();
-                $storedPath = $image->storeAs('product_images', $uniqueName, 'public');
+                // Do not force public ACL. Many new S3 buckets have ACLs disabled (Bucket owner enforced),
+                // which makes "public" visibility uploads fail.
+                $storedPath = $image->storeAs('product_images', $uniqueName, $disk);
 
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'image' => 'storage/' . $storedPath,
+                    'image' => $storedPath,
                 ]);
             }
         }
@@ -85,15 +104,18 @@ class ProductController extends Controller
         $product->brand_id = $request->brand_id;
         // Check if product images were uploaded
         if ($request->hasFile('product_images')) {
-            Storage::disk('public')->makeDirectory('product_images');
+            $disk = $this->productImagesDisk();
+                if ($disk !== 's3') {
+                    Storage::disk($disk)->makeDirectory('product_images');
+                }
             $productImages = $request->file('product_images');
             foreach ($productImages as $image) {
                 $uniqueName = time() . '-' . Str::random(10) . '.' . $image->getClientOriginalExtension();
-                $storedPath = $image->storeAs('product_images', $uniqueName, 'public');
+                $storedPath = $image->storeAs('product_images', $uniqueName, $disk);
 
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'image' => 'storage/' . $storedPath,
+                    'image' => $storedPath,
                 ]);
             }
         }
@@ -105,16 +127,22 @@ class ProductController extends Controller
     {
         $image = ProductImage::findOrFail($id);
 
+        $disk = $this->productImagesDisk();
+
         $relativePath = (string) $image->image;
+        // Backward compatibility: older records stored as "storage/product_images/...".
         if (str_starts_with($relativePath, 'storage/')) {
-            $diskPath = substr($relativePath, strlen('storage/'));
-            if ($diskPath && Storage::disk('public')->exists($diskPath)) {
-                Storage::disk('public')->delete($diskPath);
-            }
-        } else {
-            $fullPath = public_path($relativePath);
-            if (is_file($fullPath)) {
-                @unlink($fullPath);
+            $relativePath = substr($relativePath, strlen('storage/'));
+            $disk = 'public';
+        }
+
+        if ($relativePath) {
+            try {
+                if (Storage::disk($disk)->exists($relativePath)) {
+                    Storage::disk($disk)->delete($relativePath);
+                }
+            } catch (\Throwable $e) {
+                // Ignore storage errors; still delete DB record.
             }
         }
 

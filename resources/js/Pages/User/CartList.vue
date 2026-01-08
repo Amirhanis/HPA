@@ -94,7 +94,7 @@ function submit() {
                                 class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                 <td class="w-32 p-4">
                                     <img v-if="product.product_images.length > 0"
-                                        :src="`/${product.product_images[0].image}`" alt="Apple Watch">
+                                        :src="product.product_images[0].url || `/${product.product_images[0].image}`" alt="Apple Watch">
                                     <img v-else
                                         src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/330px-No-Image-Placeholder.svg.png"
                                         alt="Apple Watch">

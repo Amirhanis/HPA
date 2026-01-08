@@ -54,6 +54,9 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            // Default to private to avoid ACL-related failures on buckets with
+            // Object Ownership "Bucket owner enforced" (ACLs disabled).
+            'visibility' => env('AWS_VISIBILITY', 'private'),
             'throw' => false,
         ],
 
