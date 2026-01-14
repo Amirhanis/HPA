@@ -15,7 +15,14 @@ def get_db_connection():
 def get_all_products():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    query = "SELECT id, title, price, description, category_id, brand_id FROM products"
+    # Join with categories and brands for better context
+    query = """
+    SELECT p.id, p.title, p.price, p.description, 
+           c.name as category_name, b.name as brand_name 
+    FROM products p
+    LEFT JOIN categories c ON p.category_id = c.id
+    LEFT JOIN brands b ON p.brand_id = b.id
+    """
     cursor.execute(query)
     products = cursor.fetchall()
     conn.close()
@@ -32,7 +39,15 @@ def get_products_by_ids(ids):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     format_strings = ','.join(['%s'] * len(ids))
-    cursor.execute("SELECT id, title, price FROM products WHERE id IN (%s)" % format_strings, tuple(ids))
+    query = f"""
+    SELECT p.id, p.title, p.price, p.description,
+           c.name as category_name, b.name as brand_name
+    FROM products p
+    LEFT JOIN categories c ON p.category_id = c.id
+    LEFT JOIN brands b ON p.brand_id = b.id
+    WHERE p.id IN ({format_strings})
+    """
+    cursor.execute(query, tuple(ids))
     products = cursor.fetchall()
     conn.close()
     

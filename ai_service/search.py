@@ -30,9 +30,12 @@ class VectorSearch:
             print("No products found to index.")
             return
 
-        # Prepare strings for embedding: "Title: ... Description: ..."
+        # Enriched string for embedding: includes Category and Brand for better matching
         texts = [
-            f"Title: {p['title']}. Description: {p['description']}" 
+            f"Product: {p.get('title', '')}. "
+            f"Category: {p.get('category_name', 'General')}. "
+            f"Brand: {p.get('brand_name', 'HPA')}. "
+            f"Description: {p.get('description', '')}" 
             for p in self.products
         ]
         
@@ -52,7 +55,7 @@ class VectorSearch:
         
         results = []
         for idx in indices[0]:
-            if idx < len(self.products):
+            if idx >= 0 and idx < len(self.products):
                 results.append(self.products[idx])
         return results
 

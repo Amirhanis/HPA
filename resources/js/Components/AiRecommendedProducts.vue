@@ -37,17 +37,23 @@ onMounted(async () => {
                             {{ item.reason }}
                         </div>
                         
-                        <img class="lg:h-48 md:h-36 w-full object-cover object-center" 
-                             :src="item.product && item.product.product_images && item.product.product_images.length > 0 ? (item.product.product_images[0].url || '/' + item.product.product_images[0].image) : 'https://dummyimage.com/720x400'" 
+                        <img v-if="item.product && item.product.product_images && item.product.product_images.length > 0"
+                             :src="item.product.product_images[0].url || '/' + item.product.product_images[0].image" 
+                             class="lg:h-48 md:h-36 w-full object-cover object-center"
                              alt="product">
+                        <img v-else
+                             src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/330px-No-Image-Placeholder.svg.png"
+                             class="lg:h-48 md:h-36 w-full object-cover object-center"
+                             alt="no image">
+
                         <div class="p-6">
                             <h2 class="tracking-widest text-xs title-font font-medium text-gray-400 mb-1">
-                                {{ item.product ? item.product.category_id : 'Category' }}
+                                {{ item.product && item.product.brand ? item.product.brand.name : (item.product ? item.product.category.name : 'Category') }}
                             </h2>
                             <h1 class="title-font text-lg font-medium text-gray-900 mb-3">
                                 {{ item.product ? item.product.title : 'Product ' + item.id }}
                             </h1>
-                            <p class="leading-relaxed mb-3">RM {{ item.product ? item.product.price : '0.00' }}</p>
+                            <p class="leading-relaxed mb-3 font-semibold text-indigo-600 font-medium">RM {{ item.product ? item.product.price : '0.00' }}</p>
                             <div class="flex items-center flex-wrap ">
                                 <Link v-if="item.product" :href="route('products.index')" class="text-indigo-500 inline-flex items-center md:mb-2 lg:mb-0">Learn More
                                     <svg class="w-4 h-4 ml-2" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">

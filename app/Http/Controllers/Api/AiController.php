@@ -28,7 +28,7 @@ class AiController extends Controller
 
         // Fetch product details
         $productIds = array_column($recommendations, 'id');
-        $products = \App\Models\Product::whereIn('id', $productIds)->get();
+        $products = \App\Models\Product::with(['product_images', 'brand', 'category'])->whereIn('id', $productIds)->get();
 
         $enhanced = [];
         foreach ($recommendations as $rec) {
