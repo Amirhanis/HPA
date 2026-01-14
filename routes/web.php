@@ -30,16 +30,16 @@ Route::get('/orders/{order}/tracking', [DashboardController::class, 'tracking'])
     ->name('orders.tracking');
 
 // Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    //checkout
-    Route::prefix('checkout')->controller(CheckoutController::class)->group(function () {
-        Route::post('order', 'store')->name('checkout.store');
-        Route::get('success', 'success')->name('checkout.success');
-        Route::get('cancel', 'cancel')->name('checkout.cancel');
-    });
+//checkout
+Route::prefix('checkout')->controller(CheckoutController::class)->group(function () {
+    Route::post('order', 'store')->name('checkout.store');
+    Route::get('success', 'success')->name('checkout.success');
+    Route::get('cancel', 'cancel')->name('checkout.cancel');
+});
 // });
 
 //add to cart
@@ -69,7 +69,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
 
     Route::get('/couriers', [CourierController::class, 'index'])->name('admin.couriers.index');
-
+    Route::post('/orders/{order}/mark-paid', [AdminController::class, 'markAsPaid'])->name('admin.orders.mark_paid');
     Route::post('/orders/{order}/shipment', [ShipmentController::class, 'store'])->name('admin.orders.shipment.store');
 
     Route::get('/products', [ProductController::class, 'index'])->name('admin.products.index');
@@ -79,8 +79,13 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::delete('/products/destroy/{id}', [ProductController::class, 'destroy'])->name('admin.products.destroy');
 });
 
+Route::prefix('api/ai')->controller(\App\Http\Controllers\Api\AiController::class)->group(function () {
+    Route::post('/recommendations', 'recommendations');
+    Route::post('/chat', 'chat');
+});
+
 Route::post('/webhooks/trackingmore', [TrackingMoreWebhookController::class, 'handle'])->name('webhooks.trackingmore');
 Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
     ->name('webhooks.stripe');
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

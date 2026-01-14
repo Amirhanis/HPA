@@ -4,6 +4,7 @@ import { initFlowbite } from 'flowbite';
 import Header from './Header.vue';
 import Footer from './Footer.vue';
 import Hero from './Hero.vue';
+import ChatbotWidget from '@/Components/ChatbotWidget.vue';
 
 onMounted(() => {
     initFlowbite();
@@ -21,6 +22,7 @@ onMounted(() => {
 
 <slot/>
 
+<ChatbotWidget />
 <Footer></Footer>
 
 

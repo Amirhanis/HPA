@@ -37,31 +37,34 @@ class CheckoutController extends Controller
             }
         }
 
-        //stripe payment
-        $stripe = new StripeClient(env('STRIPE_KEY'));
-        $lineItems = [];
-        foreach ($mergedData as $item) {
-            $lineItems[] =
-                [
-                    'price_data' => [
-                        'currency' => 'myr',
-                        'product_data' => [
-                            'name' => $item['title'],
+        $paymentMethod = $request->input('payment_method', 'stripe'); // Default to stripe
+
+        $checkout_session = null;
+        if ($paymentMethod === 'stripe') {
+            //stripe payment
+            $stripe = new StripeClient(env('STRIPE_KEY'));
+            $lineItems = [];
+            foreach ($mergedData as $item) {
+                $lineItems[] =
+                    [
+                        'price_data' => [
+                            'currency' => 'myr',
+                            'product_data' => [
+                                'name' => $item['title'],
+                            ],
+                            'unit_amount' => (int) ($item['price'] * 100),
                         ],
-                        'unit_amount' => (int)($item['price'] * 100),
-                    ],
-                    'quantity' => $item['quantity'],
-                ];
+                        'quantity' => $item['quantity'],
+                    ];
+            }
+
+            $checkout_session = $stripe->checkout->sessions->create([
+                'line_items' => $lineItems,
+                'mode' => 'payment',
+                'success_url' => route('checkout.success') . '?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => route('checkout.cancel'),
+            ]);
         }
-
-
-
-        $checkout_session = $stripe->checkout->sessions->create([
-            'line_items' =>  $lineItems,
-            'mode' => 'payment',
-            'success_url' => route('checkout.success') . '?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => route('checkout.cancel'),
-        ]);
 
 
         $newAddress = $request->address;
@@ -85,7 +88,7 @@ class CheckoutController extends Controller
             $order = new Order();
             $order->status = 'unpaid';
             $order->total_price = $request->total;
-            $order->session_id = $checkout_session->id;
+            $order->session_id = $checkout_session ? $checkout_session->id : null;
             $order->created_by = $user->id;
             // If a main address with isMain = 1 exists, set its id as customer_address_id
             $order->user_address_id = $mainAddress->id;
@@ -93,15 +96,15 @@ class CheckoutController extends Controller
             $cartItems = CartItem::where(['user_id' => $user->id])->get();
             foreach ($cartItems as $cartItem) {
                 OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $cartItem->product_id,
-                'quantity' => $cartItem->quantity,
-                'unit_price' => $cartItem->product->price,
+                    'order_id' => $order->id,
+                    'product_id' => $cartItem->product_id,
+                    'quantity' => $cartItem->quantity,
+                    'unit_price' => $cartItem->product->price,
                 ]);
                 $cartItem->delete();
                 //remove cart items from cookie
                 $cartItems = Cart::getCookieCartItems();
-                foreach($cartItems as $cartItem) {
+                foreach ($cartItems as $cartItem) {
                     unset($item);
                 }
                 array_splice($cartItems, 0, count($cartItems));
@@ -112,13 +115,19 @@ class CheckoutController extends Controller
                 'order_id' => $order->id,
                 'amount' => $request->total,
                 'status' => 'pending',
-                'type' => 'stripe',
+                'type' => $paymentMethod,
                 'created_by' => $user->id,
                 'updated_by' => $user->id,
             ];
             Payment::create($paymentData);
         }
-        return Inertia::location($checkout_session->url);
+
+        if ($paymentMethod === 'stripe' && $checkout_session) {
+            return Inertia::location($checkout_session->url);
+        } else {
+            // For COD, redirect to success/dashboard directly
+            return redirect()->route('dashboard')->with('success', 'Order placed successfully. Please pay upon delivery.');
+        }
     }
 
     public function success(Request $request)
@@ -153,7 +162,7 @@ class CheckoutController extends Controller
             }
 
             return redirect()->route('dashboard')->with('error', 'Payment not completed yet. If you were charged, it will update shortly.');
-        } catch (\Throwable $e){
+        } catch (\Throwable $e) {
             return redirect()->route('dashboard')->with('error', 'Unable to verify payment. Please check your orders.');
         }
     }

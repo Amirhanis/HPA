@@ -11,6 +11,7 @@
                             <th class="px-4 py-3">Total</th>
                             <th class="px-4 py-3">Status</th>
                             <th class="px-4 py-3">Shipment</th>
+                            <th class="px-4 py-3">Payment Action</th>
                             <th class="px-4 py-3">Add/Update Tracking</th>
                         </tr>
                     </thead>
@@ -27,6 +28,15 @@
                                     <div class="text-xs text-gray-500">{{ order.shipment.delivery_status ?? 'unknown' }}</div>
                                 </div>
                                 <div v-else class="text-gray-500 text-xs">No tracking yet</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                 <button
+                                    v-if="order.status === 'unpaid' || order.status === 'pending'"
+                                    class="bg-green-600 text-white px-3 py-1 rounded text-xs"
+                                    @click="markAsPaid(order.id)"
+                                >
+                                    Mark Paid
+                                </button>
                             </td>
 
                             <td class="px-4 py-3">
@@ -115,5 +125,14 @@ function save(orderId) {
     }, {
         preserveScroll: true,
     })
+}
+
+function markAsPaid(orderId) {
+    if (confirm('Are you sure you want to mark this order as PAID?')) {
+        router.post(route('admin.orders.mark_paid', orderId), {}, {
+            preserveScroll: true,
+             onSuccess: () => alert('Order marked as paid'),
+        })
+    }
 }
 </script>

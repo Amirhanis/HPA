@@ -34,27 +34,46 @@ class AdminController extends Controller
     }
 
     public function salesReport()
-{
-    // Get sales data by date
-    $salesData = Order::selectRaw('DATE(created_at) as date, SUM(total_price) as revenue')
-        ->where('status', 'paid')
-        ->groupBy('date')
-        ->orderBy('date')
-        ->get();
+    {
+        // Get sales data by date
+        $salesData = Order::selectRaw('DATE(created_at) as date, SUM(total_price) as revenue')
+            ->where('status', 'paid')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
 
-    // Calculate total expenses (price * quantity) for all products
-    $expensesData = Product::selectRaw('DATE(created_at) as date, SUM(price * quantity) as revenue')
-        ->groupBy('date')
-        ->orderBy('date')
-        ->get();
+        // Calculate total expenses (price * quantity) for all products
+        $expensesData = Product::selectRaw('DATE(created_at) as date, SUM(price * quantity) as revenue')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
 
-    // Get total expenses sum
-    $totalExpenses = Product::sum(DB::raw('price * quantity'));
+        // Get total expenses sum
+        $totalExpenses = Product::sum(DB::raw('price * quantity'));
 
-    return Inertia::render('Admin/SalesReport', [
-        'salesData' => $salesData,
-        'expensesData' => $expensesData,
-        'totalExpenses' => $totalExpenses
-    ]);
-}
+        return Inertia::render('Admin/SalesReport', [
+            'salesData' => $salesData,
+            'expensesData' => $expensesData,
+            'totalExpenses' => $totalExpenses
+        ]);
+    }
+
+    public function markAsPaid(Order $order)
+    {
+        if ($order->status === 'unpaid' || $order->status === 'pending') {
+            $order->status = 'paid';
+            $order->save();
+
+            // Also update Payment record if exists
+            $payment = \App\Models\Payment::where('order_id', $order->id)->latest()->first();
+            if ($payment) {
+                $payment->status = 'succeeded';
+                $payment->save();
+            }
+
+            return redirect()->back()->with('success', 'Order marked as paid.');
+        }
+
+        return redirect()->back()->with('error', 'Order status cannot be updated.');
+    }
 }

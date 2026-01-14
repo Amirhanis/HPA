@@ -21,6 +21,7 @@ const form = reactive({
     zipcode: null,
     country_code: null,
     type: null,
+    payment_method: 'stripe', // Default to stripe
 
 })
 const formFilled = computed(()=>{
@@ -51,7 +52,8 @@ function submit() {
             carts: usePage().props.cart.data.items,
             products: usePage().props.cart.data.products,
             total: usePage().props.cart.data.total,
-            address: form
+            address: form,
+            payment_method: form.payment_method
         }
     })
 }
@@ -194,6 +196,20 @@ function submit() {
                             <label for="email" class="leading-7 text-sm text-gray-600">Address type</label>
                             <input type="text" id="email" name="type" v-model="form.type"
                                 class="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
+                        </div>
+
+                         <div class="relative mb-4">
+                            <label class="leading-7 text-sm text-gray-600">Payment Method</label>
+                            <div class="flex items-center mt-2">
+                                <div class="flex items-center mr-4">
+                                    <input id="payment-stripe" type="radio" value="stripe" v-model="form.payment_method" name="payment_method" class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 focus:ring-indigo-500">
+                                    <label for="payment-stripe" class="ml-2 text-sm font-medium text-gray-900">Stripe / Credit Card</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="payment-cod" type="radio" value="cod" v-model="form.payment_method" name="payment_method" class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 focus:ring-indigo-500">
+                                    <label for="payment-cod" class="ml-2 text-sm font-medium text-gray-900">Cash on Delivery (COD)</label>
+                                </div>
+                            </div>
                         </div>
 
 
