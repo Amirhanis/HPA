@@ -1,23 +1,31 @@
-# Render Docker deploy for Laravel 11 + Vite/Inertia
+# Render Docker deploy for Laravel 11 + AI Service (FastAPI)
 # Nginx (8080) -> PHP-FPM
+# AI Service -> Port 8001
 
-FROM php:8.2-fpm-alpine AS base
+FROM php:8.2-fpm AS base
 
-# System dependencies
-RUN apk add --no-cache \
+# System dependencies (Debian based)
+RUN apt-get update && apt-get install -y \
     bash \
     curl \
     git \
-    icu-dev \
+    libicu-dev \
     libzip-dev \
-    oniguruma-dev \
-    postgresql-dev \
+    libpng-dev \
+    libonig-dev \
+    libpq-dev \
+    mariadb-client \
     nginx \
     supervisor \
     nodejs \
     npm \
     unzip \
-    gettext
+    gettext-base \
+    python3 \
+    python3-pip \
+    python3-venv \
+    build-essential \
+ && rm -rf /var/lib/apt/lists/*
 
 # PHP extensions
 RUN docker-php-ext-install \
@@ -25,7 +33,6 @@ RUN docker-php-ext-install \
     mbstring \
     pdo \
     pdo_mysql \
-    pdo_pgsql \
     zip
 
 # Composer
@@ -35,6 +42,14 @@ WORKDIR /var/www/html
 
 # Copy application source
 COPY . .
+
+# AI Service Setup (Virtual Environment)
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN pip install --no-cache-dir --upgrade pip \
+ && pip install --no-cache-dir -r ai_service/requirements.txt \
+ # Pre-download Semantic Model to ensure local availability and faster startup
+ && python3 -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 
 # Install PHP dependencies (production)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
