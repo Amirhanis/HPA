@@ -17,14 +17,15 @@ RUN apt-get update && apt-get install -y \
     mariadb-client \
     nginx \
     supervisor \
-    nodejs \
-    npm \
     unzip \
     gettext-base \
     python3 \
     python3-pip \
     python3-venv \
     build-essential \
+    libgomp1 \
+ && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+ && apt-get install -y nodejs \
  && rm -rf /var/lib/apt/lists/*
 
 # PHP extensions
@@ -54,10 +55,10 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Install PHP dependencies (production)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Build frontend assets (Vite -> public/build)
-RUN npm ci \
- && npm run build \
- && rm -rf node_modules
+# Build frontend assets
+RUN npm install
+RUN NODE_OPTIONS=--max-old-space-size=1024 npm run build
+RUN rm -rf node_modules
 
 # Nginx + Supervisor configs
 COPY ./.render/nginx.conf /etc/nginx/nginx.conf.template
