@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y \
     mariadb-client \
     nginx \
     supervisor \
+    nodejs \
+    npm \
     unzip \
     gettext-base \
     python3 \
@@ -53,6 +55,12 @@ RUN python3 -c "from sentence_transformers import SentenceTransformer; SentenceT
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
+# Build frontend assets (Vite -> public/build)
+RUN npm ci \
+ && npm run build \
+ && rm -rf node_modules
+
+# Nginx + Supervisor configs
 # Copy configuration files
 COPY ./.render/nginx.conf /etc/nginx/nginx.conf.template
 COPY ./.render/supervisord.conf /etc/supervisord.conf
