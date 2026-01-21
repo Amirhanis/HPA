@@ -1,6 +1,8 @@
 import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
+import torch
+torch.set_num_threads(1)
 from database import get_all_products
 
 class VectorSearch:

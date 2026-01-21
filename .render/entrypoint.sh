@@ -1,8 +1,9 @@
 #!/usr/bin/env sh
 set -e
 
-# Ensure PORT is set
+# Ensure environment variables are set before Laravel boots
 export PORT="${PORT:-10000}"
+export AI_SERVICE_URL="http://127.0.0.1:8001"
 
 echo "Bootstrapping Laravel..."
 
@@ -31,7 +32,7 @@ if [ ! -L /var/www/html/public/storage ]; then
   php artisan storage:link || true
 fi
 
-# Clear caches
+# Clear and Cache config
 php artisan optimize:clear || true
 
 # Run migrations if enabled
@@ -46,10 +47,11 @@ php artisan config:cache || true
 # Limit PHP-FPM workers to save memory on Render Free tier (512MB)
 if [ -f /usr/local/etc/php-fpm.d/www.conf ]; then
   echo "Optimizing PHP-FPM for low memory..."
-  sed -i 's/pm.max_children = 5/pm.max_children = 2/g' /usr/local/etc/php-fpm.d/www.conf
-  sed -i 's/pm.start_servers = 2/pm.start_servers = 1/g' /usr/local/etc/php-fpm.d/www.conf
-  sed -i 's/pm.min_spare_servers = 1/pm.min_spare_servers = 1/g' /usr/local/etc/php-fpm.d/www.conf
-  sed -i 's/pm.max_spare_servers = 3/pm.max_spare_servers = 1/g' /usr/local/etc/php-fpm.d/www.conf
+  sed -i 's/pm.max_children = .*/pm.max_children = 4/g' /usr/local/etc/php-fpm.d/www.conf
+  sed -i 's/pm.start_servers = .*/pm.start_servers = 2/g' /usr/local/etc/php-fpm.d/www.conf
+  sed -i 's/pm.min_spare_servers = .*/pm.min_spare_servers = 1/g' /usr/local/etc/php-fpm.d/www.conf
+  sed -i 's/pm.max_spare_servers = .*/pm.max_spare_servers = 2/g' /usr/local/etc/php-fpm.d/www.conf
+  grep -q "pm.max_requests" /usr/local/etc/php-fpm.d/www.conf || echo "pm.max_requests = 500" >> /usr/local/etc/php-fpm.d/www.conf
 fi
 
 # Ensure AI Service URL is set for Laravel
