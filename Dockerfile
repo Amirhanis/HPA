@@ -1,10 +1,17 @@
-# Render Docker deploy for Laravel 11 + AI Service (FastAPI)
-# Nginx (8080) -> PHP-FPM
-# AI Service -> Port 8001
+# Multi-stage build for Laravel 11 + AI Service
+# Stage 1: Build frontend assets
+FROM node:20-alpine AS frontend-builder
 
-FROM php:8.2-fpm AS base
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --legacy-peer-deps
+COPY . .
+RUN npm run build
 
-# System dependencies (Debian based)
+# Stage 2: Main application with PHP + Python AI Service
+FROM php:8.2-fpm
+
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     bash \
     curl \
@@ -23,50 +30,49 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-venv \
     build-essential \
-    libgomp1 \
- && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
- && apt-get install -y nodejs \
  && rm -rf /var/lib/apt/lists/*
 
-# PHP extensions
+# Install PHP extensions
 RUN docker-php-ext-install \
     intl \
     mbstring \
     pdo \
     pdo_mysql \
+    pdo_pgsql \
     zip
 
-# Composer
+# Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copy application source
+# Copy application files
 COPY . .
 
-# AI Service Setup (Virtual Environment)
+# Copy built frontend assets from builder stage
+COPY --from=frontend-builder /app/public/build ./public/build
+
+# Setup Python virtual environment for AI service
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install --no-cache-dir --upgrade pip \
- && pip install --no-cache-dir -r ai_service/requirements.txt \
- # Pre-download Semantic Model to ensure local availability and faster startup
- && python3 -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 
-# Install PHP dependencies (production)
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r ai_service/requirements.txt
+
+# Pre-download the semantic model to avoid runtime delays
+RUN python3 -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')" || true
+
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Build frontend assets
-RUN npm install
-RUN NODE_OPTIONS=--max-old-space-size=1024 npm run build
-RUN rm -rf node_modules
-
-# Nginx + Supervisor configs
+# Copy configuration files
 COPY ./.render/nginx.conf /etc/nginx/nginx.conf.template
 COPY ./.render/supervisord.conf /etc/supervisord.conf
 COPY ./.render/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Laravel permissions
+# Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 EXPOSE 10000
