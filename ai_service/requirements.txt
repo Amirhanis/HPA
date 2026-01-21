@@ -3,7 +3,6 @@ uvicorn
 pydantic
 python-dotenv
 openai
-mysql-connector-python
 psycopg2-binary
 sentence-transformers
 faiss-cpu

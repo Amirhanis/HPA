@@ -20,7 +20,10 @@ class VectorSearch:
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         self.products = []
         self.index = None
-        self.reindex()
+        try:
+            self.reindex()
+        except Exception as e:
+            print(f"FAILED to index products: {e}")
         self._initialized = True
 
     def reindex(self):
