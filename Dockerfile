@@ -3,9 +3,22 @@
 FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app
+
+# Copy package files first for better caching
 COPY package*.json ./
+
+# Install dependencies with legacy peer deps and increased memory
 RUN npm ci --legacy-peer-deps
-COPY . .
+
+# Copy source files needed for build
+COPY resources ./resources
+COPY vite.config.js ./
+COPY postcss.config.js ./
+COPY tailwind.config.js ./
+COPY jsconfig.json ./
+
+# Increase Node memory and build
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN npm run build
 
 # Stage 2: Main application with PHP + Python AI Service
