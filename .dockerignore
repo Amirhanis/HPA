@@ -26,10 +26,3 @@ phpunit.xml
 # OS / editor cruft
 .DS_Store
 Thumbs.db
-
-# Python
-__pycache__
-*.pyc
-*.pyo
-.venv
-ai_service/__pycache__
