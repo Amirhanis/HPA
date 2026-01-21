@@ -17,7 +17,7 @@ class AiRecommendationService
     public function getRecommendations($userId, $cartItems = [])
     {
         try {
-            $response = Http::post("{$this->baseUrl}/recommendations", [
+            $response = Http::timeout(60)->post("{$this->baseUrl}/recommendations", [
                 'user_id' => $userId,
                 'cart_items' => $cartItems,
             ]);
@@ -35,7 +35,7 @@ class AiRecommendationService
     public function chat($message, $cartItems = [])
     {
         try {
-            $response = Http::post("{$this->baseUrl}/chat", [
+            $response = Http::timeout(60)->post("{$this->baseUrl}/chat", [
                 'message' => $message,
                 'cart_items' => $cartItems,
             ]);

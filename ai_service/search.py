@@ -17,7 +17,7 @@ class VectorSearch:
             return
         
         print("Initializing Semantic Search Engine...")
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.model = SentenceTransformer('all-MiniLM-L6-v2', device='cpu')
         self.products = []
         self.index = None
         try:

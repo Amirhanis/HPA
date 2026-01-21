@@ -18,6 +18,7 @@ class ChatMessage(BaseModel):
     cart_items: Any = []
 
 @app.get("/")
+@app.head("/")
 def read_root():
     return {"status": "AI Service Running"}
 

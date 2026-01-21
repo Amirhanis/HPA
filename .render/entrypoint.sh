@@ -43,6 +43,18 @@ fi
 # Cache config
 php artisan config:cache || true
 
+# Limit PHP-FPM workers to save memory on Render Free tier (512MB)
+if [ -f /usr/local/etc/php-fpm.d/www.conf ]; then
+  echo "Optimizing PHP-FPM for low memory..."
+  sed -i 's/pm.max_children = 5/pm.max_children = 2/g' /usr/local/etc/php-fpm.d/www.conf
+  sed -i 's/pm.start_servers = 2/pm.start_servers = 1/g' /usr/local/etc/php-fpm.d/www.conf
+  sed -i 's/pm.min_spare_servers = 1/pm.min_spare_servers = 1/g' /usr/local/etc/php-fpm.d/www.conf
+  sed -i 's/pm.max_spare_servers = 3/pm.max_spare_servers = 1/g' /usr/local/etc/php-fpm.d/www.conf
+fi
+
+# Ensure AI Service URL is set for Laravel
+export AI_SERVICE_URL="http://127.0.0.1:8001"
+
 # Render nginx config
 envsubst '${PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
