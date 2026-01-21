@@ -1,13 +1,8 @@
 #!/usr/bin/env sh
 set -e
 
-echo "Building frontend assets..."
-cd /var/www/html
-
-# Try to build, but don't fail if it errors (use pre-built assets)
-npm ci --legacy-peer-deps 2>/dev/null || true
-NODE_OPTIONS="--max-old-space-size=2048" npm run build 2>/dev/null || echo "Using pre-built assets"
-rm -rf node_modules
+# Ensure PORT is set
+export PORT="${PORT:-10000}"
 
 echo "Bootstrapping Laravel..."
 

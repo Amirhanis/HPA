@@ -72,6 +72,7 @@ RUN chmod +x /entrypoint.sh
 # Laravel permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
+ENV PORT 10000
 EXPOSE 10000
 
 CMD ["/entrypoint.sh"]
