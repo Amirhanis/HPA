@@ -36,6 +36,8 @@ RUN docker-php-ext-install \
     mbstring \
     pdo \
     pdo_mysql \
+    pdo_pgsql \
+    pgsql \
     zip
 
 # Composer
@@ -70,7 +72,10 @@ COPY ./.render/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # Laravel permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN mkdir -p /var/www/html/storage/logs && \
+    touch /var/www/html/storage/logs/laravel.log && \
+    chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 ENV PORT 10000
 EXPOSE 10000
