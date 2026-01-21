@@ -43,6 +43,18 @@ fi
 # Cache config
 php artisan config:cache || true
 
+# Generate AI service .env from Laravel environment
+echo "Creating AI service configuration..."
+cat > /var/www/html/ai_service/.env <<EOF
+DB_CONNECTION=${DB_CONNECTION:-mysql}
+DB_HOST=${DB_HOST:-127.0.0.1}
+DB_PORT=${DB_PORT:-3306}
+DB_USER=${DB_USERNAME:-root}
+DB_PASSWORD=${DB_PASSWORD:-}
+DB_NAME=${DB_DATABASE:-hpa}
+OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+EOF
+
 # Render nginx config
 envsubst '${PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
