@@ -1,7 +1,30 @@
-# Simple Dockerfile - Pre-built assets approach
+# Multi-stage build for Laravel 11 + AI Service
+# Stage 1: Build frontend assets
+FROM node:20-alpine AS frontend-builder
+
+WORKDIR /app
+
+# Copy package files first for better caching
+COPY package*.json ./
+
+# Install dependencies with legacy peer deps and increased memory
+RUN npm ci --legacy-peer-deps
+
+# Copy source files needed for build
+COPY resources ./resources
+COPY vite.config.js ./
+COPY postcss.config.js ./
+COPY tailwind.config.js ./
+COPY jsconfig.json ./
+
+# Increase Node memory and build
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+RUN npm run build
+
+# Stage 2: Main application with PHP + Python AI Service
 FROM php:8.2-fpm
 
-# Install system dependencies (including Python for AI service)
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     bash \
     curl \
@@ -41,15 +64,18 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
+# Copy built frontend assets from builder stage
+COPY --from=frontend-builder /app/public/build ./public/build
+
 # Setup Python virtual environment for AI service
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install Python dependencies for AI service
+# Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r ai_service/requirements.txt
 
-# Pre-download the semantic model
+# Pre-download the semantic model to avoid runtime delays
 RUN python3 -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')" || true
 
 # Install PHP dependencies
